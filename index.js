@@ -97,6 +97,21 @@ async function run() {
       const users = await usersCollection.find(query).toArray();
       res.send(users);
     });
+
+    //Making pending to users.
+    app.patch("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const role = req.body.role;
+      const query = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: role,
+        },
+      };
+      const result = await usersCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
+
     //Admin Role Api
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
@@ -105,12 +120,12 @@ async function run() {
       res.send({ isAdmin: user?.role === "admin" });
     });
 
-    //Buyers Role Api
-    app.get("/users/buyers/:email", async (req, res) => {
+    //Users Role Api
+    app.get("/users/user/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const user = await usersCollection.findOne(query);
-      res.send({ isBuyer: user?.role === "buyers" });
+      res.send({ isUser: user?.role === "user" });
     });
 
     // All Buyers api
