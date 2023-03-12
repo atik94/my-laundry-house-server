@@ -41,6 +41,7 @@ async function run() {
   try {
     const usersCollection = client.db("my-laundry-house").collection("users");
     const servicesCollection = client.db("my-laundry-house").collection("services");
+    const reviewsCollection = client.db("my-laundry-house").collection("review");
 
     // NOTE: make sure you use verifyAdmin after verifyJWT
     const verifyAdmin = async (req, res, next) => {
@@ -158,6 +159,38 @@ async function run() {
       const cursor = servicesCollection.find(query).sort({ title: -1 });
       const services = await cursor.toArray();
       res.send(services);
+    });
+
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const service = await servicesCollection.findOne(query);
+      res.send(service);
+    });
+
+    //Review Api
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
+      res.send(result);
+    });
+
+    app.get("/reviews", async (req, res) => {
+      let query = {};
+      if (req.query.email) {
+        query = {
+          email: req.query.email,
+        };
+      }
+
+      if (req.query.id) {
+        query = {
+          service: req.query.id,
+        };
+      }
+      const cursor = reviewsCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
     });
   } finally {
   }
