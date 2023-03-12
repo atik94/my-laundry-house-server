@@ -40,6 +40,7 @@ function verifyJWT(req, res, next) {
 async function run() {
   try {
     const usersCollection = client.db("my-laundry-house").collection("users");
+    const servicesCollection = client.db("my-laundry-house").collection("services");
 
     // NOTE: make sure you use verifyAdmin after verifyJWT
     const verifyAdmin = async (req, res, next) => {
@@ -53,7 +54,7 @@ async function run() {
       next();
     };
 
-    // NOTE: make sure you use verifyBuyer after verifyJWT
+    // NOTE: make sure you use verifyUser after verifyJWT
     const verifyBuyer = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
@@ -142,6 +143,21 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(filter);
       res.send(result);
+    });
+
+    //Service Api
+    app.post("/services", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = req.body;
+      const options = await servicesCollection.insertOne(query);
+      res.send(options);
+    });
+
+    // Get service api
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const cursor = servicesCollection.find(query).sort({ title: -1 });
+      const services = await cursor.toArray();
+      res.send(services);
     });
   } finally {
   }
